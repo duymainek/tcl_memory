@@ -2,18 +2,17 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useProgressStore } from "@/store/useProgressStore";
 import { totalProgress } from "@/lib/types";
-import { Chat } from "@/pages/Chat";
-import { Redeem } from "@/pages/Redeem";
+import { Memory } from "@/pages/Memory";
 import { MapPage } from "@/pages/MapPage";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Ticket, Map as MapIcon } from "lucide-react";
+import { BookOpen, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Tab = "chat" | "redeem" | "map";
+type Tab = "memory" | "map";
 
 function App() {
   const { state, init, loading } = useProgressStore();
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>("memory");
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
 
@@ -44,8 +43,7 @@ function App() {
   return (
     <div className="mx-auto flex h-svh max-w-md flex-col bg-background">
       <div className="flex-1 overflow-hidden">
-        {tab === "chat" && <Chat state={state} />}
-        {tab === "redeem" && <Redeem />}
+        {tab === "memory" && <Memory state={state} />}
         {tab === "map" &&
           (mapUnlocked ? (
             <MapPage totalPercent={total} teamDeviceId={state.teamDeviceId} />
@@ -57,8 +55,7 @@ function App() {
       </div>
 
       <nav className="flex justify-around border-t border-border bg-card py-2">
-        <NavButton icon={<MessageCircle className="h-5 w-5" />} label="Kể chuyện" active={tab === "chat"} onClick={() => setTab("chat")} />
-        <NavButton icon={<Ticket className="h-5 w-5" />} label="Đổi thẻ" active={tab === "redeem"} onClick={() => setTab("redeem")} />
+        <NavButton icon={<BookOpen className="h-5 w-5" />} label="Ký ức" active={tab === "memory"} onClick={() => setTab("memory")} />
         <NavButton icon={<MapIcon className="h-5 w-5" />} label="Bản đồ" active={tab === "map"} onClick={() => setTab("map")} />
       </nav>
 

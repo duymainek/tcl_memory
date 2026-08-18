@@ -5,16 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ProgressBar } from "@/components/ProgressBar";
 import { useProgressStore } from "@/store/useProgressStore";
 import type { StationId, TeamProgressState } from "@/lib/types";
-import { CAP_PER_STATION, STATION_IDS } from "@/lib/types";
+import { CAP_PER_STATION, STATION_IDS, STATION_LABELS } from "@/lib/types";
 import { ArrowLeft, Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const STATION_LABELS: Record<StationId, string> = {
-  1: "Trạm 1",
-  2: "Trạm 2",
-  3: "Trạm 3",
-  4: "Trạm 4",
-};
 
 export function Chat({ state }: { state: TeamProgressState }) {
   const { sendMissionMessage, canSend, tickCooldown, cooldownRemainingMs } = useProgressStore();

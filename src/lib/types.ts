@@ -27,6 +27,12 @@ export interface TeamProgressState {
 }
 
 export const STATION_IDS: StationId[] = [1, 2, 3, 4];
+export const STATION_LABELS: Record<StationId, string> = {
+  1: "Trạm 1",
+  2: "Trạm 2",
+  3: "Trạm 3",
+  4: "Trạm 4",
+};
 export const CAP_PER_STATION = 25;
 export const COOLDOWN_MS = 15_000;
 

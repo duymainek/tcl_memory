@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useProgressStore } from "@/store/useProgressStore";
+import { STATION_LABELS } from "@/lib/types";
 import { Ticket, CheckCircle2, XCircle } from "lucide-react";
 
 export function Redeem() {
@@ -10,6 +11,13 @@ export function Redeem() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reveal, setReveal] = useState<{ gained: number; stationLabel: string } | null>(null);
+
+  useEffect(() => {
+    if (!reveal) return;
+    const t = setTimeout(() => setReveal(null), 5000);
+    return () => clearTimeout(t);
+  }, [reveal]);
 
   const handleRedeem = async () => {
     if (!code.trim() || busy) return;
@@ -17,7 +25,11 @@ export function Redeem() {
     const res = await redeemCard(code);
     setBusy(false);
     if (res.ok) {
-      setResult({ ok: true, message: `Cộng +${res.addedPercent}% ký ức vào trạm ${res.stationId}!` });
+      const stationLabel = res.stationId ? STATION_LABELS[res.stationId] : "";
+      setResult({ ok: true, message: `Cộng +${res.addedPercent}% ký ức vào ${stationLabel}!` });
+      if (res.addedPercent && res.addedPercent > 0) {
+        setReveal({ gained: res.addedPercent, stationLabel });
+      }
       setCode("");
     } else {
       const messages: Record<string, string> = {
@@ -30,7 +42,7 @@ export function Redeem() {
   };
 
   return (
-    <div className="flex h-full flex-col items-center gap-6 p-6 pt-16">
+    <div className="relative flex h-full flex-col items-center gap-6 p-6 pt-16">
       <Ticket className="h-10 w-10 text-primary" />
       <div className="text-center">
         <h2 className="font-story text-xl font-semibold">Đổi thẻ ký ức</h2>
@@ -63,6 +75,35 @@ export function Redeem() {
           {result.message}
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {reveal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-2 bg-background/85 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 14 }}
+              className="font-story text-6xl font-bold text-primary"
+            >
+              +{reveal.gained}%
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="text-sm text-muted-foreground"
+            >
+              Ký ức được khớp — {reveal.stationLabel}
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
