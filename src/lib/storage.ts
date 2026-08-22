@@ -1,4 +1,23 @@
-import { createEmptyState, type TeamProgressState } from "./types";
+import { createEmptyState, emptyStationProgress, STATION_IDS, type TeamProgressState } from "./types";
+
+/**
+ * Vá state cũ (được lưu từ bản trước khi có trạm 5 / redeemedCodeHashes) cho khớp
+ * với cấu trúc hiện tại — nếu không, các trạm/field thiếu sẽ là undefined và làm
+ * toàn app crash khi render (vd. state.stations[5].totalPercent).
+ */
+function migrateState(state: TeamProgressState): TeamProgressState {
+  const stations = { ...state.stations };
+  for (const id of STATION_IDS) {
+    if (!stations[id]) {
+      stations[id] = emptyStationProgress();
+    }
+  }
+  return {
+    ...state,
+    stations,
+    redeemedCodeHashes: state.redeemedCodeHashes ?? [],
+  };
+}
 
 /**
  * Lưu progress ở localStorage dưới dạng mã hoá AES-GCM.
@@ -88,7 +107,9 @@ export async function loadProgress(): Promise<TeamProgressState> {
     );
     const state = JSON.parse(new TextDecoder().decode(plaintext)) as TeamProgressState;
     if (state.teamDeviceId !== deviceId) throw new Error("device id mismatch");
-    return state;
+    const migrated = migrateState(state);
+    await saveProgress(migrated);
+    return migrated;
   } catch {
     // Dữ liệu bị hỏng hoặc bị can thiệp thô bạo -> reset an toàn thay vì crash app.
     const fresh = createEmptyState(deviceId);
