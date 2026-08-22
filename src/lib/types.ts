@@ -48,7 +48,7 @@ export const CAP_PER_STATION: Record<StationId, number> = {
   5: 24,
 };
 
-export const COOLDOWN_MS = 15_000;
+export const COOLDOWN_MS = 5_000;
 
 export function emptyStationProgress(): StationProgress {
   return { matchedEventIds: [], percentFromStory: 0, percentFromCard: 0, totalPercent: 0 };

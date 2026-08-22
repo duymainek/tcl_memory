@@ -1,22 +1,15 @@
-import { createEmptyState, emptyStationProgress, STATION_IDS, type TeamProgressState } from "./types";
+import { createEmptyState, type TeamProgressState } from "./types";
 
 /**
- * Vá state cũ (được lưu từ bản trước khi có trạm 5 / redeemedCodeHashes) cho khớp
- * với cấu trúc hiện tại — nếu không, các trạm/field thiếu sẽ là undefined và làm
- * toàn app crash khi render (vd. state.stations[5].totalPercent).
+ * State lưu từ bản trước khi có trạm mảnh ghép (trạm 1 mới) không thể vá được:
+ * trạm 1 cũ trỏ tới nội dung "Gốc me đầu xóm" (chat AI, cap 25) trong khi trạm 1
+ * mới là mảnh ghép (nhập mã, cap 6) — cùng vị trí nhưng khác hẳn ý nghĩa, ghép
+ * lại sẽ hiển thị % sai và lẫn matchedEventIds của câu chuyện cũ vào đúng chỗ.
+ * Trạm 5 chỉ tồn tại từ bản 5-trạm trở đi nên thiếu nó là dấu hiệu chắc chắn
+ * đây là state đời cũ -> reset sạch thay vì cố migrate lai ghép sai lệch.
  */
-function migrateState(state: TeamProgressState): TeamProgressState {
-  const stations = { ...state.stations };
-  for (const id of STATION_IDS) {
-    if (!stations[id]) {
-      stations[id] = emptyStationProgress();
-    }
-  }
-  return {
-    ...state,
-    stations,
-    redeemedCodeHashes: state.redeemedCodeHashes ?? [],
-  };
+function isLegacyState(state: TeamProgressState): boolean {
+  return !state.stations?.[5];
 }
 
 /**
@@ -107,9 +100,12 @@ export async function loadProgress(): Promise<TeamProgressState> {
     );
     const state = JSON.parse(new TextDecoder().decode(plaintext)) as TeamProgressState;
     if (state.teamDeviceId !== deviceId) throw new Error("device id mismatch");
-    const migrated = migrateState(state);
-    await saveProgress(migrated);
-    return migrated;
+    if (isLegacyState(state)) {
+      const fresh = createEmptyState(deviceId);
+      await saveProgress(fresh);
+      return fresh;
+    }
+    return state;
   } catch {
     // Dữ liệu bị hỏng hoặc bị can thiệp thô bạo -> reset an toàn thay vì crash app.
     const fresh = createEmptyState(deviceId);
