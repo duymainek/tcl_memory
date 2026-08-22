@@ -6,7 +6,15 @@ import scenarios from "./scenarios.json";
 const lastSeenByTeam = new Map<string, number>();
 const COOLDOWN_MS = 15_000;
 
-type StationId = "1" | "2" | "3" | "4";
+type StationId = "2" | "3" | "4" | "5";
+
+// Phải khớp với CAP_PER_STATION trong src/lib/types.ts.
+const CAP_PER_STATION: Record<StationId, number> = {
+  "2": 23,
+  "3": 23,
+  "4": 24,
+  "5": 24,
+};
 
 interface ChatRequestBody {
   mode: "mission" | "companion";
@@ -73,7 +81,7 @@ export default async (req: Request, _context: Context) => {
     }
     const station = (scenarios as Record<string, { title: string; storyContext: string; coreEvents: { id: string; description: string; weight: number }[] }>)[stationId];
 
-    const result = await callGeminiScoring(apiKey, station, message, alreadyMatchedEventIds ?? []);
+    const result = await callGeminiScoring(apiKey, stationId as StationId, station, message, alreadyMatchedEventIds ?? []);
     return new Response(JSON.stringify(result), { headers: { "content-type": "application/json" } });
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -87,6 +95,7 @@ export default async (req: Request, _context: Context) => {
 
 async function callGeminiScoring(
   apiKey: string,
+  stationId: StationId,
   station: { title: string; storyContext: string; coreEvents: { id: string; description: string; weight: number }[] },
   message: string,
   alreadyMatchedEventIds: string[]
@@ -142,7 +151,8 @@ Trả về DUY NHẤT một JSON object đúng schema sau, không thêm text nà
   const matchedWeight = station.coreEvents
     .filter((e) => matchedNew.includes(e.id))
     .reduce((s, e) => s + e.weight, 0);
-  const matchPercentNew = Math.round((matchedWeight / totalWeight) * 25);
+  const cap = CAP_PER_STATION[stationId];
+  const matchPercentNew = Math.round((matchedWeight / totalWeight) * cap);
 
   return {
     match_percent_new: parsed.is_keyword_spam ? 0 : matchPercentNew,

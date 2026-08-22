@@ -21,6 +21,7 @@
   --color-station-2: var(--station-2);
   --color-station-3: var(--station-3);
   --color-station-4: var(--station-4);
+  --color-station-5: var(--station-5);
   --font-serif-story: "Source Serif 4", Georgia, serif;
   --font-sans-ui: "Inter", system-ui, sans-serif;
   --radius-lg: 0.9rem;
@@ -45,11 +46,12 @@
   --ring: #d99a3f;
   --destructive: #e0555a;
 
-  /* Màu riêng cho 4 trạm trên thanh progress */
+  /* Màu riêng cho 5 trạm trên thanh progress */
   --station-1: #d99a3f;
   --station-2: #c0724f;
   --station-3: #7a8fc2;
   --station-4: #7fc29a;
+  --station-5: #b98fd6;
 }
 
 * {

@@ -1,4 +1,4 @@
-// Salt cố định để hash mã thẻ — phải khớp với salt dùng khi BTC sinh cards.json.
+// Salt cố định để hash mã — phải khớp với salt dùng khi BTC sinh codes.json.
 const CARD_SALT = "chuyen-tau-ky-uc-2026-card-salt-v1";
 
 export async function sha256Hex(input: string): Promise<string> {

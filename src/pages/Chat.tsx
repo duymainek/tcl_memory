@@ -1,21 +1,27 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ProgressBar } from "@/components/ProgressBar";
+import { FragmentQuest } from "@/pages/FragmentQuest";
 import { useProgressStore } from "@/store/useProgressStore";
 import type { StationId, TeamProgressState } from "@/lib/types";
-import { CAP_PER_STATION, STATION_IDS, STATION_LABELS } from "@/lib/types";
-import { ArrowLeft, Send, Sparkles } from "lucide-react";
+import { CAP_PER_STATION, FRAGMENT_PERCENT_PER_PIECE, FRAGMENT_STATION_ID, STATION_IDS, STATION_LABELS } from "@/lib/types";
+import { ArrowLeft, KeyRound, Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Chat({ state }: { state: TeamProgressState }) {
-  const { sendMissionMessage, canSend, tickCooldown, cooldownRemainingMs } = useProgressStore();
+  const { sendMissionMessage, redeemCode, canSend, tickCooldown, cooldownRemainingMs } = useProgressStore();
   const [thread, setThread] = useState<StationId | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [reveal, setReveal] = useState<{ gained: number; stationPercent: number } | null>(null);
+  const [redeemOpen, setRedeemOpen] = useState(false);
+  const [redeemCodeInput, setRedeemCodeInput] = useState("");
+  const [redeemBusy, setRedeemBusy] = useState(false);
+  const [redeemMsg, setRedeemMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     const interval = setInterval(tickCooldown, 500);
@@ -28,7 +34,38 @@ export function Chat({ state }: { state: TeamProgressState }) {
     return () => clearTimeout(t);
   }, [reveal]);
 
+  const goBack = () => {
+    setThread(null);
+    setErrorMsg(null);
+    setRedeemOpen(false);
+    setRedeemCodeInput("");
+    setRedeemMsg(null);
+  };
+
   const messages = thread ? state.chatHistory.filter((m) => m.mode === "mission" && m.stationId === thread) : [];
+
+  const handleRedeem = async () => {
+    if (!redeemCodeInput.trim() || redeemBusy) return;
+    setRedeemBusy(true);
+    const res = await redeemCode(redeemCodeInput);
+    setRedeemBusy(false);
+    if (res.ok) {
+      const stationLabel = res.stationId ? STATION_LABELS[res.stationId] : "";
+      setRedeemMsg({ ok: true, text: `Cộng +${res.addedPercent}% ký ức vào ${stationLabel}!` });
+      setRedeemCodeInput("");
+      if (res.addedPercent && res.addedPercent > 0) {
+        setReveal({ gained: res.addedPercent, stationPercent: res.stationPercent ?? 0 });
+      }
+    } else {
+      const messages: Record<string, string> = {
+        invalid_code: "Mã không hợp lệ.",
+        already_used: "Mã này đã được dùng rồi.",
+        fragments_full: "Trạm này đã nhận đủ mã rồi.",
+        not_ready: "Đang tải dữ liệu, thử lại sau giây lát.",
+      };
+      setRedeemMsg({ ok: false, text: messages[res.error ?? ""] ?? "Có lỗi xảy ra." });
+    }
+  };
 
   const handleSend = async () => {
     if (!thread || !text.trim() || sending) return;
@@ -69,29 +106,44 @@ export function Chat({ state }: { state: TeamProgressState }) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="mb-3 text-center text-sm text-muted-foreground">
+          <p className="mb-4 text-center text-sm text-muted-foreground">
             Chọn một trạm để kể lại cho Tư nghe những gì đội vừa trải qua.
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            {STATION_IDS.map((id) => (
-              <StationCard
-                key={id}
-                id={id}
-                percent={state.stations[id].totalPercent}
-                onClick={() => setThread(id)}
-              />
-            ))}
-          </div>
+          <JourneyTimeline state={state} onSelect={setThread} />
         </div>
       </div>
     );
   }
 
+  if (thread === FRAGMENT_STATION_ID) {
+    return (
+      <div className="relative flex h-full flex-col">
+        <div className="flex items-center gap-2 border-b border-border p-4 pb-3">
+          <button
+            onClick={goBack}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
+            aria-label="Quay lại danh sách trạm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <span className="font-story text-sm font-medium text-foreground">{STATION_LABELS[thread]}</span>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <FragmentQuest
+            unlockedFragments={Math.round(state.stations[thread].percentFromCard / FRAGMENT_PERCENT_PER_PIECE)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const cap = CAP_PER_STATION[thread];
+
   return (
     <div className="relative flex h-full flex-col">
       <div className="flex items-center gap-2 border-b border-border p-4 pb-3">
         <button
-          onClick={() => setThread(null)}
+          onClick={goBack}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
           aria-label="Quay lại danh sách trạm"
         >
@@ -107,11 +159,59 @@ export function Chat({ state }: { state: TeamProgressState }) {
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${Math.min(100, (state.stations[thread].totalPercent / CAP_PER_STATION) * 100)}%` }}
+              style={{ width: `${Math.min(100, (state.stations[thread].totalPercent / cap) * 100)}%` }}
             />
           </div>
         </div>
+        <button
+          onClick={() => {
+            setRedeemOpen((v) => !v);
+            setRedeemMsg(null);
+          }}
+          className={cn(
+            "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors",
+            redeemOpen ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"
+          )}
+        >
+          <KeyRound className="h-3.5 w-3.5" />
+          Nhập mã
+        </button>
       </div>
+
+      <AnimatePresence initial={false}>
+        {redeemOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-b border-border bg-secondary/30"
+          >
+            <div className="flex flex-col gap-2 p-3">
+              <div className="flex gap-2">
+                <Input
+                  value={redeemCodeInput}
+                  onChange={(e) => setRedeemCodeInput(e.target.value.toUpperCase())}
+                  placeholder="Nhập mã ký ức đội nhận được ở trạm..."
+                  className="h-10 flex-1 text-sm tracking-widest"
+                />
+                <Button
+                  onClick={handleRedeem}
+                  disabled={!redeemCodeInput.trim() || redeemBusy}
+                  size="sm"
+                  className="h-10 shrink-0"
+                >
+                  {redeemBusy ? "..." : "Đổi mã"}
+                </Button>
+              </div>
+              {redeemMsg && (
+                <p className={cn("text-xs", redeemMsg.ok ? "text-primary" : "text-destructive")}>
+                  {redeemMsg.text}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
@@ -209,36 +309,125 @@ function ThinkingDot({ delay }: { delay: number }) {
   );
 }
 
-function StationCard({
-  id,
-  percent,
-  onClick,
+const STATION_SUBTITLES: Record<StationId, string> = {
+  1: "Mảnh ghép ký ức",
+  2: "Gốc me đầu xóm",
+  3: "Oẳn tù xì mùa hè",
+  4: "Hội chơi liên hoàn",
+  5: "Phiên chợ Tết",
+};
+
+function JourneyTimeline({
+  state,
+  onSelect,
 }: {
-  id: StationId;
-  percent: number;
-  onClick: () => void;
+  state: TeamProgressState;
+  onSelect: (id: StationId) => void;
 }) {
-  const full = percent >= CAP_PER_STATION;
-  const fillRatio = Math.min(1, percent / CAP_PER_STATION);
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
-        full ? "border-primary bg-primary/10" : "border-border bg-secondary/40 hover:bg-secondary/70"
-      )}
-    >
-      <div className="flex w-full items-center justify-between">
-        <span className="font-story text-base font-semibold text-foreground">{STATION_LABELS[id]}</span>
-        {full && <Sparkles className="h-4 w-4 text-primary" />}
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn("h-full rounded-full", full ? "bg-primary" : "bg-foreground/40")}
-          style={{ width: `${fillRatio * 100}%` }}
+    <div className="relative mx-auto max-w-sm pb-2">
+      {STATION_IDS.map((id, i) => {
+        const percent = state.stations[id].totalPercent;
+        const cap = CAP_PER_STATION[id];
+        const full = percent >= cap;
+        const started = percent > 0;
+        const isLast = i === STATION_IDS.length - 1;
+        const nextFull = !isLast && state.stations[STATION_IDS[i + 1]].totalPercent > 0;
+
+        return (
+          <div key={id} className="relative flex gap-4">
+            <div className="relative flex shrink-0 flex-col items-center">
+              <StationNode percent={percent} cap={cap} full={full} started={started} />
+              {!isLast && (
+                <div className="relative w-0.5 flex-1 py-1">
+                  <div className="absolute inset-0 rounded-full bg-border" />
+                  <motion.div
+                    className="absolute inset-x-0 top-0 rounded-full bg-primary"
+                    initial={{ height: 0 }}
+                    animate={{ height: full || nextFull ? "100%" : "0%" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => onSelect(id)}
+              className={cn(
+                "mb-4 flex flex-1 flex-col items-start gap-1 rounded-xl border p-3.5 text-left transition-colors",
+                full
+                  ? "border-primary bg-primary/10"
+                  : started
+                    ? "border-border bg-secondary/50 hover:bg-secondary/80"
+                    : "border-border/60 bg-secondary/20 hover:bg-secondary/50"
+              )}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span className="font-story text-base font-semibold text-foreground">{STATION_LABELS[id]}</span>
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                  {full && <Sparkles className="h-3.5 w-3.5 text-primary" />}
+                  {percent}%
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">{STATION_SUBTITLES[id]}</span>
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StationNode({
+  percent,
+  cap,
+  full,
+  started,
+}: {
+  percent: number;
+  cap: number;
+  full: boolean;
+  started: boolean;
+}) {
+  const size = 40;
+  const stroke = 3.5;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const ratio = Math.min(1, percent / cap);
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth={stroke}
         />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--primary)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: circumference * (1 - ratio) }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+      </svg>
+      <div
+        className={cn(
+          "absolute inset-0 flex items-center justify-center rounded-full",
+          full ? "text-primary" : started ? "text-foreground" : "text-muted-foreground/50"
+        )}
+      >
+        {full ? <Sparkles className="h-4 w-4" /> : <div className="h-1.5 w-1.5 rounded-full bg-current" />}
       </div>
-      <span className="text-xs text-muted-foreground">{percent}%</span>
-    </button>
+    </div>
   );
 }

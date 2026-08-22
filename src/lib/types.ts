@@ -1,10 +1,10 @@
-export type StationId = 1 | 2 | 3 | 4;
+export type StationId = 1 | 2 | 3 | 4 | 5;
 
 export interface StationProgress {
   matchedEventIds: string[];
-  percentFromStory: number; // 0-25
-  percentFromCard: number; // 0-25
-  totalPercent: number; // min(25, story+card)
+  percentFromStory: number;
+  percentFromCard: number;
+  totalPercent: number;
 }
 
 export interface ChatMessage {
@@ -19,21 +19,35 @@ export interface ChatMessage {
 export interface TeamProgressState {
   teamDeviceId: string;
   stations: Record<StationId, StationProgress>;
-  redeemedCardHashes: string[];
+  redeemedCodeHashes: string[];
   chatHistory: ChatMessage[];
   lastMessageAt: number;
   mapUnlockedAt: number | null;
   createdAt: number;
 }
 
-export const STATION_IDS: StationId[] = [1, 2, 3, 4];
+export const STATION_IDS: StationId[] = [1, 2, 3, 4, 5];
 export const STATION_LABELS: Record<StationId, string> = {
   1: "Trạm 1",
   2: "Trạm 2",
   3: "Trạm 3",
   4: "Trạm 4",
+  5: "Trạm 5",
 };
-export const CAP_PER_STATION = 25;
+
+// Trạm 1 = trạm mảnh ghép ký ức (không chat AI), các trạm còn lại chấm qua AI.
+export const FRAGMENT_STATION_ID: StationId = 1;
+export const FRAGMENT_COUNT = 3;
+export const FRAGMENT_PERCENT_PER_PIECE = 2;
+
+export const CAP_PER_STATION: Record<StationId, number> = {
+  1: 6,
+  2: 23,
+  3: 23,
+  4: 24,
+  5: 24,
+};
+
 export const COOLDOWN_MS = 15_000;
 
 export function emptyStationProgress(): StationProgress {
@@ -48,8 +62,9 @@ export function createEmptyState(teamDeviceId: string): TeamProgressState {
       2: emptyStationProgress(),
       3: emptyStationProgress(),
       4: emptyStationProgress(),
+      5: emptyStationProgress(),
     },
-    redeemedCardHashes: [],
+    redeemedCodeHashes: [],
     chatHistory: [],
     lastMessageAt: 0,
     mapUnlockedAt: null,

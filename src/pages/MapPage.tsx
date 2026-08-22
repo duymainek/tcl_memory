@@ -1,57 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import {
-  ARRIVED_THRESHOLD_METERS,
-  DESTINATION,
-  bearingDegrees,
-  displayedDistance,
-  haversineMeters,
-  pollIntervalMsForPercent,
-} from "@/lib/geo";
-import { Compass, MapPin } from "lucide-react";
+import { MAP_FIRST_MILESTONE, mapImageForPercent } from "@/lib/mapMilestones";
+import { Map as MapIcon, X, ZoomIn } from "lucide-react";
 
-export function MapPage({ totalPercent, teamDeviceId }: { totalPercent: number; teamDeviceId: string }) {
-  const [distance, setDistance] = useState<number | null>(null);
-  const [bearing, setBearing] = useState<number | null>(null);
-  const [geoError, setGeoError] = useState<string | null>(null);
-  const [arrived, setArrived] = useState(false);
-  const timerRef = useRef<number | null>(null);
-
-  const interval = pollIntervalMsForPercent(totalPercent);
-
-  useEffect(() => {
-    if (!interval) return;
-
-    const poll = () => {
-      if (!navigator.geolocation) {
-        setGeoError("Thiết bị không hỗ trợ định vị GPS.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          const real = haversineMeters(here, DESTINATION);
-          const shown = displayedDistance(real, totalPercent, teamDeviceId);
-          setDistance(shown);
-          setBearing(bearingDegrees(here, DESTINATION));
-          setGeoError(null);
-          if (real <= ARRIVED_THRESHOLD_METERS && totalPercent >= 100 && !arrived) {
-            setArrived(true);
-            confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
-          }
-        },
-        () => setGeoError("Không lấy được vị trí — hãy cấp quyền định vị cho trình duyệt."),
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
-      );
-    };
-
-    poll();
-    timerRef.current = window.setInterval(poll, interval);
-    return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-    };
-  }, [interval, totalPercent, teamDeviceId, arrived]);
+export function MapPage({ totalPercent }: { totalPercent: number }) {
+  const imageUrl = mapImageForPercent(totalPercent);
+  const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
     if (totalPercent >= 100) {
@@ -60,49 +15,83 @@ export function MapPage({ totalPercent, teamDeviceId }: { totalPercent: number; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!interval) {
+  if (!imageUrl) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-        <MapPin className="h-10 w-10 text-muted-foreground" />
-        <p className="text-muted-foreground">
-          Bản đồ sẽ dần hé lộ khi đội đạt từ 40% ký ức trở lên. Hiện tại: {totalPercent}%.
-        </p>
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+          <MapIcon className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <div className="space-y-1">
+          <p className="font-story text-lg font-semibold text-foreground">
+            Bản đồ đang được niêm phong
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Thu thập đủ <span className="font-semibold text-foreground">{MAP_FIRST_MILESTONE}%</span> ký ức từ các trạm
+            để mở mảnh bản đồ đầu tiên.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Hiện tại đội bạn đã thu thập được {totalPercent}%.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-8 p-6 text-center">
-      {arrived ? (
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <h2 className="font-story text-2xl font-semibold text-primary">Đã đến nơi rồi!</h2>
-          <p className="mt-2 text-muted-foreground">Chuyến tàu ký ức đã về đến ga cuối. Hẹn gặp lại!</p>
-        </motion.div>
-      ) : (
-        <>
+    <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <AnimatePresence mode="wait">
+        <motion.button
+          key={imageUrl}
+          type="button"
+          onClick={() => setZoomed(true)}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="group relative max-h-[70vh] w-full max-w-md cursor-zoom-in"
+        >
+          <img
+            src={imageUrl}
+            alt={`Bản đồ ở mốc ${totalPercent}%`}
+            className="max-h-[70vh] w-full rounded-lg object-contain shadow-lg"
+          />
+          <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white opacity-80 transition-opacity group-hover:opacity-100">
+            <ZoomIn className="h-4 w-4" />
+          </span>
+        </motion.button>
+      </AnimatePresence>
+      <p className="text-sm text-muted-foreground">
+        {totalPercent >= 100
+          ? "Bản đồ đã hoàn chỉnh — chuyến tàu ký ức sẵn sàng khởi hành!"
+          : `Đội bạn đã thu thập được ${totalPercent}% ký ức.`}
+      </p>
+
+      <AnimatePresence>
+        {zoomed && (
           <motion.div
-            animate={{ rotate: bearing ?? 0 }}
-            transition={{ type: "spring", stiffness: 60, damping: 12 }}
-            className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-primary/40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomed(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
           >
-            <Compass className="h-16 w-16 text-primary" />
+            <button
+              type="button"
+              onClick={() => setZoomed(false)}
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white"
+              aria-label="Đóng"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <motion.img
+              src={imageUrl}
+              alt={`Bản đồ ở mốc ${totalPercent}% (phóng to)`}
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="max-h-full max-w-full cursor-zoom-out rounded-lg object-contain"
+            />
           </motion.div>
-
-          <div>
-            <p className="font-story text-4xl font-semibold text-foreground">
-              {distance !== null ? `${distance}m` : "..."}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">khoảng cách ước lượng đến điểm hẹn</p>
-          </div>
-
-          {geoError && <p className="text-sm text-destructive">{geoError}</p>}
-          {totalPercent < 100 && (
-            <p className="text-xs text-muted-foreground">
-              Vị trí sẽ ngày càng chính xác khi ký ức được khơi lại đầy đủ hơn.
-            </p>
-          )}
-        </>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

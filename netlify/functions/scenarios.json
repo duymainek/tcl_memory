@@ -1,50 +1,52 @@
 {
-  "1": {
-    "title": "Trạm 1 — Gốc me đầu xóm (Ông Tư, 9 tuổi)",
+  "2": {
+    "title": "Trạm 2 — Gốc me đầu xóm (Ông Tư, 9 tuổi)",
     "storyContext": "Ông Tư gặp Nam dưới gốc me đầu xóm. Nam đang chơi thử ô ăn quan một mình, rủ ông Tư chơi cùng, giao kèo \"thua chịu búng tai\". Ông Tư thua liên tiếp 3 ván, bị búng tai mỗi lần thua. Sau ván thứ 3, ông Tư tức khí đứng dậy, quyết tâm luyện tập để thắng lại Nam. Nam đưa cho ông Tư một nắm sỏi, ngầm ý ủng hộ.",
     "coreEvents": [
-      { "id": "s1_e01", "description": "Địa điểm: gốc me đầu xóm", "weight": 1 },
-      { "id": "s1_e02", "description": "Hoạt động: chơi ô ăn quan", "weight": 1 },
-      { "id": "s1_e03", "description": "Nhân vật cùng chơi: Nam", "weight": 1 },
-      { "id": "s1_e04", "description": "Giao kèo/luật phạt: thua bị búng tai", "weight": 1 },
-      { "id": "s1_e05", "description": "Số lần ông Tư thua: 3 ván liên tiếp", "weight": 1 },
-      { "id": "s1_e06", "description": "Kết quả cảm xúc: ông Tư tức khí, quyết tâm luyện tập để thắng lại", "weight": 1 }
-    ]
-  },
-  "2": {
-    "title": "Trạm 2 — Oẳn tù xì mùa hè (Ông Tư, 13 tuổi)",
-    "storyContext": "4 năm sau, ông Tư và Nam dùng oẳn tù xì để phân định ai phải làm việc nhà. Ông Tư liên tục ra \"búa\" và bị Nam bắt bài, thua 4 ván liên tiếp. Ông Tư tự giác nhận thua, cầm chổi đi quét nhà mà không cần Nam nhắc. Nam an ủi, mách nước một \"chiêu\" ra tay khác cho lần sau.",
-    "coreEvents": [
-      { "id": "s2_e01", "description": "Hoạt động: oẳn tù xì (kéo búa bao)", "weight": 1 },
-      { "id": "s2_e02", "description": "Nhân vật cùng chơi: Nam", "weight": 1 },
-      { "id": "s2_e03", "description": "Mục đích: phân định việc nhà", "weight": 1 },
-      { "id": "s2_e04", "description": "Số lần ông Tư thua: 4 ván liên tiếp", "weight": 1 },
-      { "id": "s2_e05", "description": "Chi tiết thua: ông Tư ra \"búa\" nhiều lần, bị Nam đoán/bắt bài", "weight": 1 },
-      { "id": "s2_e06", "description": "Hình phạt: thua phải quét nhà (đạo cụ: cây chổi)", "weight": 1 },
-      { "id": "s2_e07", "description": "Kết: ông Tư tự giác nhận thua không cần nhắc; Nam an ủi/mách chiêu mới", "weight": 1 }
+      { "id": "s2_e01", "description": "Địa điểm: gốc me đầu xóm", "weight": 1 },
+      { "id": "s2_e02", "description": "Hoạt động: chơi ô ăn quan", "weight": 1 },
+      { "id": "s2_e03", "description": "Nhân vật cùng chơi: Nam", "weight": 1 },
+      { "id": "s2_e04", "description": "Giao kèo/luật phạt: thua bị búng tai", "weight": 1 },
+      { "id": "s2_e05", "description": "Số lần ông Tư thua: 3 ván liên tiếp", "weight": 1 },
+      { "id": "s2_e06", "description": "Kết quả cảm xúc: ông Tư tức khí, quyết tâm luyện tập để thắng lại", "weight": 1 }
     ]
   },
   "3": {
-    "title": "Trạm 3 — Hội chơi liên hoàn (Ông Tư, 16 tuổi)",
-    "storyContext": "Xóm tổ chức hội chơi liên hoàn gồm 3 chặng: đấu cầu, tán lon, và một vòng loại trực tiếp bằng sỏi (đứng im khi hết tiếng nhạc/hiệu lệnh, ai động đậy bị loại). Trước khi vào vòng sỏi, Nam và ông Tư vừa đá cầu qua lại vừa ôn lại kỷ niệm cũ hồi nhỏ hay đá cầu ở sân đình. Nam nhắc mình từng bị loại vòng đầu năm ngoái, ông Tư trấn an sẽ ráng trụ tới cuối.",
+    "title": "Trạm 3 — Oẳn tù xì mùa hè (Ông Tư, 13 tuổi)",
+    "storyContext": "4 năm sau, ông Tư và Nam dùng oẳn tù xì để phân định ai phải làm việc nhà. Ông Tư liên tục ra \"búa\" và bị Nam bắt bài, thua 4 ván liên tiếp. Ông Tư tự giác nhận thua, cầm chổi đi quét nhà mà không cần Nam nhắc. Nam an ủi, mách nước một \"chiêu\" ra tay khác cho lần sau.",
     "coreEvents": [
-      { "id": "s3_e01", "description": "Hoạt động: hội chơi liên hoàn 3 chặng — đấu cầu, tán lon, vòng loại bằng sỏi", "weight": 1 },
+      { "id": "s3_e01", "description": "Hoạt động: oẳn tù xì (kéo búa bao)", "weight": 1 },
       { "id": "s3_e02", "description": "Nhân vật cùng chơi: Nam", "weight": 1 },
-      { "id": "s3_e03", "description": "Luật vòng sỏi: đứng im khi hết hiệu lệnh, động đậy bị loại", "weight": 1 },
-      { "id": "s3_e04", "description": "Chi tiết hoài niệm: Nam và ông Tư từng đá cầu ở sân đình hồi nhỏ", "weight": 1 },
-      { "id": "s3_e05", "description": "Chi tiết cảm xúc: Nam từng bị loại vòng đầu năm trước; ông Tư động viên năm nay ráng trụ tới cuối", "weight": 1 }
+      { "id": "s3_e03", "description": "Mục đích: phân định việc nhà", "weight": 1 },
+      { "id": "s3_e04", "description": "Số lần ông Tư thua: 4 ván liên tiếp", "weight": 1 },
+      { "id": "s3_e05", "description": "Chi tiết thua: ông Tư ra \"búa\" nhiều lần, bị Nam đoán/bắt bài", "weight": 1 },
+      { "id": "s3_e06", "description": "Hình phạt: thua phải quét nhà (đạo cụ: cây chổi)", "weight": 1 },
+      { "id": "s3_e07", "description": "Kết: ông Tư tự giác nhận thua không cần nhắc; Nam an ủi/mách chiêu mới", "weight": 1 }
     ]
   },
   "4": {
-    "title": "Trạm 4 — Chiếc cassette và \"Katy Katy\" (Ông Tư, 18 tuổi)",
-    "storyContext": "Ông Tư vừa mua được chiếc cassette đầu tiên, hớn hở khoe Nam. Ông mở bài \"Katy Katy\" đố Nam đoán tên bài hát. Nam đoán nhầm là bài \"Honey\". Ông Tư sửa lại, đọc đúng tên bài là \"Katy Katy\". Sau đó cả hai cùng ngồi nghe tiếp các bài khác.",
+    "title": "Trạm 4 — Hội chơi liên hoàn (Ông Tư, 16 tuổi)",
+    "storyContext": "Xóm tổ chức hội chơi liên hoàn gồm 3 chặng: đấu cầu, tán lon, và một vòng loại trực tiếp bằng sỏi (đứng im khi hết tiếng nhạc/hiệu lệnh, ai động đậy bị loại). Trước khi vào vòng sỏi, Nam và ông Tư vừa đá cầu qua lại vừa ôn lại kỷ niệm cũ hồi nhỏ hay đá cầu ở sân đình. Nam nhắc mình từng bị loại vòng đầu năm ngoái, ông Tư trấn an sẽ ráng trụ tới cuối.",
     "coreEvents": [
-      { "id": "s4_e01", "description": "Đồ vật: cassette (mới mua)", "weight": 1 },
-      { "id": "s4_e02", "description": "Nhân vật cùng nghe: Nam", "weight": 1 },
-      { "id": "s4_e03", "description": "Hành động: ông Tư đố Nam đoán tên bài hát", "weight": 1 },
-      { "id": "s4_e04", "description": "Bài hát đúng: \"Katy Katy\"", "weight": 1 },
-      { "id": "s4_e05", "description": "Câu trả lời sai của Nam: \"Honey\"", "weight": 1 },
-      { "id": "s4_e06", "description": "Kết: ông Tư sửa lại đáp án đúng; cả hai cùng nghe tiếp các bài khác", "weight": 1 }
+      { "id": "s4_e01", "description": "Hoạt động: hội chơi liên hoàn 3 chặng — đấu cầu, tán lon, vòng loại bằng sỏi", "weight": 1 },
+      { "id": "s4_e02", "description": "Nhân vật cùng chơi: Nam", "weight": 1 },
+      { "id": "s4_e03", "description": "Luật vòng sỏi: đứng im khi hết hiệu lệnh, động đậy bị loại", "weight": 1 },
+      { "id": "s4_e04", "description": "Chi tiết hoài niệm: Nam và ông Tư từng đá cầu ở sân đình hồi nhỏ", "weight": 1 },
+      { "id": "s4_e05", "description": "Chi tiết cảm xúc: Nam từng bị loại vòng đầu năm trước; ông Tư động viên năm nay ráng trụ tới cuối", "weight": 1 }
+    ]
+  },
+  "5": {
+    "title": "Trạm 5 — Phiên chợ Tết (Ông Tư, 18 tuổi)",
+    "storyContext": "Hai năm sau, ông Tư 18 tuổi — cái Tết cuối cùng trước khi rời quê lên tỉnh học nghề. Xóm tổ chức hội chợ Tết ngay bãi đất trống đầu làng, cờ hoa giăng khắp lối, tiếng loa phát nhạc xuân rộn ràng. Điểm nhấn của hội chợ năm đó là trận đua xe kéo (xe ba gác tự chế, gắn bánh xe đạp cũ) giữa xóm ông Tư và xóm Đông — một món nợ danh dự kéo dài gần chục năm, từ hồi hai xóm còn thi kéo co ở đình làng mà xóm Đông ăn gian đứt dây khiến xóm ông Tư thua tức tưởi. Nam rủ ông Tư cùng đội đua, hai người thay phiên kéo xe qua từng chặng — chặng đầu vòng quanh giếng làng, chặng giữa băng qua con dốc gạch, chặng cuối về đích trước cổng đình. Ông Tư suýt trượt ngã ở khúc cua dốc gạch vì xe tròng trành, Nam kịp ghì lại. Cuối cùng đội xóm ông Tư về nhất, thắng ngược xóm Đông, rửa được mối hận cũ. Đêm đó cả xóm đốt lửa ăn mừng, ông Tư và Nam ngồi cạnh đống lửa, Nam vỗ vai bảo năm sau nhất định phải về ăn Tết chung. Ông Tư gật đầu nhưng trong lòng đã biết chuyến đi xa sắp tới sẽ không dễ hẹn ngày trở lại.",
+    "coreEvents": [
+      { "id": "s5_e01", "description": "Bối cảnh: hội chợ Tết ở bãi đất trống đầu làng, cờ hoa và nhạc xuân", "weight": 1 },
+      { "id": "s5_e02", "description": "Hoạt động chính: đua xe kéo (xe ba gác tự chế gắn bánh xe đạp cũ)", "weight": 1 },
+      { "id": "s5_e03", "description": "Đối thủ: xóm Đông — món nợ danh dự từ trận kéo co gần chục năm trước (xóm Đông ăn gian đứt dây)", "weight": 1 },
+      { "id": "s5_e04", "description": "Đồng đội: Nam rủ ông Tư cùng đội đua, hai người thay phiên kéo xe", "weight": 1 },
+      { "id": "s5_e05", "description": "Lộ trình đua: 3 chặng — vòng quanh giếng làng, băng qua dốc gạch, về đích trước cổng đình", "weight": 1 },
+      { "id": "s5_e06", "description": "Chi tiết cao trào: ông Tư suýt ngã ở khúc cua dốc gạch, được Nam ghì xe lại kịp", "weight": 1 },
+      { "id": "s5_e07", "description": "Kết quả: đội xóm ông Tư về nhất, thắng ngược xóm Đông, rửa mối hận cũ", "weight": 1 },
+      { "id": "s5_e08", "description": "Chi tiết cảm xúc: đêm đốt lửa ăn mừng, Nam hẹn năm sau về ăn Tết chung; ông Tư gật đầu nhưng lòng biết sắp đi xa khó hẹn ngày trở lại", "weight": 1 }
     ]
   }
 }

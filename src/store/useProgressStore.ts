@@ -2,6 +2,9 @@ import { create } from "zustand";
 import {
   CAP_PER_STATION,
   COOLDOWN_MS,
+  FRAGMENT_COUNT,
+  FRAGMENT_PERCENT_PER_PIECE,
+  FRAGMENT_STATION_ID,
   STATION_IDS,
   totalProgress,
   type ChatMessage,
@@ -9,7 +12,7 @@ import {
   type TeamProgressState,
 } from "@/lib/types";
 import { loadProgress, saveProgress, resetProgress as resetLocalStorage } from "@/lib/storage";
-import cardsData from "@/data/cards.json";
+import codesData from "@/data/codes.json";
 import { sha256Hex } from "@/lib/hash";
 
 interface ScoringResponse {
@@ -31,7 +34,9 @@ interface ProgressStore {
     text: string
   ) => Promise<{ ok: boolean; error?: string; gainedPercent?: number; stationPercent?: number; overallPercent?: number }>;
   sendCompanionMessage: (text: string) => Promise<{ ok: boolean; error?: string }>;
-  redeemCard: (code: string) => Promise<{ ok: boolean; error?: string; addedPercent?: number; stationId?: StationId }>;
+  redeemCode: (
+    code: string
+  ) => Promise<{ ok: boolean; error?: string; addedPercent?: number; stationId?: StationId; stationPercent?: number }>;
   tickCooldown: () => void;
   resetAll: () => Promise<void>;
 }
@@ -109,11 +114,12 @@ export const useProgressStore = create<ProgressStore>((set, get) => ({
 
       const after: TeamProgressState = structuredClone(nextState);
       const station = after.stations[stationId];
+      const cap = CAP_PER_STATION[stationId];
       const beforeStationPercent = station.totalPercent;
       const newIds = data.matched_event_ids_new.filter((id) => !station.matchedEventIds.includes(id));
       station.matchedEventIds = [...station.matchedEventIds, ...newIds];
-      station.percentFromStory = Math.min(CAP_PER_STATION, station.percentFromStory + data.match_percent_new);
-      station.totalPercent = Math.min(CAP_PER_STATION, station.percentFromStory + station.percentFromCard);
+      station.percentFromStory = Math.min(cap, station.percentFromStory + data.match_percent_new);
+      station.totalPercent = Math.min(cap, station.percentFromStory + station.percentFromCard);
       const gainedPercent = station.totalPercent - beforeStationPercent;
 
       pushMessage(after, {
@@ -197,22 +203,28 @@ export const useProgressStore = create<ProgressStore>((set, get) => ({
     }
   },
 
-  redeemCard: async (code) => {
+  redeemCode: async (code) => {
     const s = get().state;
     if (!s) return { ok: false, error: "not_ready" };
     const hash = await sha256Hex(code.trim());
-    const match = (cardsData as { hash: string; stationId: StationId; percent: number }[]).find(
+    const match = (codesData as { hash: string; stationId: StationId; percent: number }[]).find(
       (c) => c.hash === hash
     );
     if (!match) return { ok: false, error: "invalid_code" };
-    if (s.redeemedCardHashes.includes(hash)) return { ok: false, error: "already_used" };
+    if (s.redeemedCodeHashes.includes(hash)) return { ok: false, error: "already_used" };
+
+    if (match.stationId === FRAGMENT_STATION_ID) {
+      const redeemedFragments = Math.round(s.stations[FRAGMENT_STATION_ID].percentFromCard / FRAGMENT_PERCENT_PER_PIECE);
+      if (redeemedFragments >= FRAGMENT_COUNT) return { ok: false, error: "fragments_full" };
+    }
 
     const after: TeamProgressState = structuredClone(s);
-    after.redeemedCardHashes.push(hash);
+    after.redeemedCodeHashes.push(hash);
     const station = after.stations[match.stationId];
+    const cap = CAP_PER_STATION[match.stationId];
     const before = station.totalPercent;
-    station.percentFromCard = Math.min(CAP_PER_STATION, station.percentFromCard + match.percent);
-    station.totalPercent = Math.min(CAP_PER_STATION, station.percentFromStory + station.percentFromCard);
+    station.percentFromCard = Math.min(cap, station.percentFromCard + match.percent);
+    station.totalPercent = Math.min(cap, station.percentFromStory + station.percentFromCard);
     const added = station.totalPercent - before;
 
     if (totalProgress(after) >= 100 && !after.mapUnlockedAt) {
@@ -221,7 +233,7 @@ export const useProgressStore = create<ProgressStore>((set, get) => ({
 
     set({ state: after });
     await saveProgress(after);
-    return { ok: true, addedPercent: added, stationId: match.stationId };
+    return { ok: true, addedPercent: added, stationId: match.stationId, stationPercent: station.totalPercent };
   },
 
   resetAll: async () => {

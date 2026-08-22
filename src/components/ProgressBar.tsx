@@ -9,6 +9,7 @@ const STATION_COLORS: Record<number, string> = {
   2: "var(--station-2)",
   3: "var(--station-3)",
   4: "var(--station-4)",
+  5: "var(--station-5)",
 };
 
 function useCountUp(target: number, durationMs = 700) {
@@ -56,8 +57,9 @@ export function ProgressBar({ state, compact }: { state: TeamProgressState; comp
       <div className="flex h-4 w-full gap-1 overflow-hidden rounded-full bg-muted p-0.5">
         {STATION_IDS.map((id) => {
           const pct = state.stations[id].totalPercent;
-          const fillRatio = Math.min(1, pct / CAP_PER_STATION);
-          const isFullSegment = pct >= CAP_PER_STATION;
+          const cap = CAP_PER_STATION[id];
+          const fillRatio = Math.min(1, pct / cap);
+          const isFullSegment = pct >= cap;
           return (
             <div key={id} className="relative h-full flex-1 overflow-hidden rounded-full bg-secondary/60">
               <motion.div

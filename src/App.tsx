@@ -4,8 +4,10 @@ import { useProgressStore } from "@/store/useProgressStore";
 import { totalProgress } from "@/lib/types";
 import { Memory } from "@/pages/Memory";
 import { MapPage } from "@/pages/MapPage";
+import { Intro } from "@/pages/Intro";
+import { hasSeenIntro, markIntroSeen } from "@/lib/introSeen";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Map as MapIcon } from "lucide-react";
+import { BookOpen, Info, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = "memory" | "map";
@@ -15,6 +17,7 @@ function App() {
   const [tab, setTab] = useState<Tab>("memory");
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => !hasSeenIntro());
 
   useEffect(() => {
     init();
@@ -37,26 +40,30 @@ function App() {
     );
   }
 
+  if (showIntro) {
+    return (
+      <Intro
+        onDone={() => {
+          markIntroSeen();
+          setShowIntro(false);
+        }}
+      />
+    );
+  }
+
   const total = totalProgress(state);
-  const mapUnlocked = state.mapUnlockedAt !== null || total >= 100;
 
   return (
     <div className="mx-auto flex h-svh max-w-md flex-col bg-background">
       <div className="flex-1 overflow-hidden">
         {tab === "memory" && <Memory state={state} />}
-        {tab === "map" &&
-          (mapUnlocked ? (
-            <MapPage totalPercent={total} teamDeviceId={state.teamDeviceId} />
-          ) : (
-            <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
-              Bản đồ sẽ mở khoá khi đội đạt 100% ký ức.
-            </div>
-          ))}
+        {tab === "map" && <MapPage totalPercent={total} />}
       </div>
 
-      <nav className="flex justify-around border-t border-border bg-card py-2">
+      <nav className="flex items-center justify-around border-t border-border bg-card py-2">
         <NavButton icon={<BookOpen className="h-5 w-5" />} label="Ký ức" active={tab === "memory"} onClick={() => setTab("memory")} />
         <NavButton icon={<MapIcon className="h-5 w-5" />} label="Bản đồ" active={tab === "map"} onClick={() => setTab("map")} />
+        <NavButton icon={<Info className="h-5 w-5" />} label="Giới thiệu" active={false} onClick={() => setShowIntro(true)} />
       </nav>
 
       <AnimatePresence>
